@@ -217,7 +217,10 @@ function Empty({
 }
 
 export default function Workspace() {
-  const [view, setView] = useState<View>("overview");
+  const [view, setView] = useState<View>(() => {
+    const requested = new URLSearchParams(location.search).get("view");
+    return navigation.find(item => item.id === requested)?.id ?? "overview";
+  });
   const [data, setData] = useState<Snapshot | null>(null);
   const [meeting, setMeeting] = useState<Meeting>({
     segments: [],
@@ -466,7 +469,7 @@ export default function Workspace() {
     : focusMinutes * 60;
 
   return (
-    <div className="workspace">
+    <div className={`workspace ${new URLSearchParams(location.search).get("embedded") === "1" ? "workspace-embedded" : ""}`}>
       <aside className="sidebar">
         <a
           className="brand"

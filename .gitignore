@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.venv-backup-*/
+.pytest_cache/
+.env
+
+# Node / Vite
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# Editors / OS
+.vscode/
+.DS_Store
+Thumbs.db

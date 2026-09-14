@@ -7,6 +7,7 @@ import uuid
 from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import Literal
+from urllib.parse import urlencode
 
 import httpx
 from fastapi import APIRouter, Depends, Header, HTTPException
@@ -423,6 +424,22 @@ class SafetyInput(BaseModel):
 def analyze_safety(request: SafetyInput, workspace: Workspace = Depends(authenticate)):
     verdict = safety_mediation_layer.analyze(request.text, [], workspace.session.policy)
     return {"verdict": verdict}
+
+
+@router.post("/search")
+def prepare_search(request: SafetyInput, workspace: Workspace = Depends(authenticate)):
+    if workspace.session.profile.age_group != "adult":
+        raise HTTPException(403, "외부 검색은 성인 프로필에서만 사용할 수 있습니다.")
+    if "web_search" not in workspace.session.policy.allowed_capabilities:
+        raise HTTPException(403, "웹 검색이 정책에서 차단됐습니다.")
+    query = request.text.strip()
+    if not query or len(query) > 500:
+        raise HTTPException(422, "검색어는 1~500자로 입력하세요.")
+    url = "https://www.bing.com/search?" + urlencode({"q": query})
+    verdict = safety_mediation_layer.analyze(query, [url], workspace.session.policy)
+    if not verdict.allowed:
+        raise HTTPException(403, verdict.reason)
+    return {"url": url, "query": query}
 
 
 @router.post("/chat")

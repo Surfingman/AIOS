@@ -1670,6 +1670,10 @@ footer > span:last-child {
     grid-template-columns: 1fr;
   }
 }
+.workspace.workspace-embedded { display: block; min-height: 100vh; }
+.workspace-embedded > .sidebar, .workspace-embedded .topbar, .workspace-embedded footer { display: none; }
+.workspace-embedded .content-wrap { padding: 24px; }
+.workspace-embedded .page-heading h1 { font-size: 22px; }
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -19,6 +19,19 @@ def session():
 def test_workspace_requires_token():
     with TestClient(app) as client:
         assert client.get("/api/workspace").status_code == 401
+        assert client.post("/api/workspace/search", json={"text": "weather"}).status_code == 401
+
+
+def test_search_respects_policy_and_age(session):
+    client, _ = session
+    policy = {"allowed_capabilities": ["web_search"], "age_group": "adult"}
+    assert client.put("/api/workspace/policy", json=policy).status_code == 200
+    result = client.post("/api/workspace/search", json={"text": "weather & travel"})
+    assert result.status_code == 200
+    assert result.json()["url"] == "https://www.bing.com/search?q=weather+%26+travel"
+    for update in ({"blocked_domains": ["bing.com"]}, {"allowed_capabilities": []}, {"age_group": "7-9", "new_pin": "123456"}):
+        assert client.put("/api/workspace/policy", json={**policy, **update}).status_code == 200
+        assert client.post("/api/workspace/search", json={"text": "weather"}).status_code == 403
 
 
 def test_private_health_endpoint_is_protected(session):

@@ -2,12 +2,16 @@ param(
     [ValidateRange(1024, 65500)][int]$Port = 8035,
     [switch]$SkipInstall,
     [switch]$SkipBuild,
-    [switch]$ResetVenv
+    [switch]$ResetVenv,
+    [ValidateSet('workspace', 'os')][string]$Interface = 'workspace'
 )
 
 $ErrorActionPreference = 'Stop'
 $python = Join-Path $PSScriptRoot 'backend\.venv\Scripts\python.exe'
 $frontend = Join-Path $PSScriptRoot 'frontend-canvas'
+$frontends = @($frontend)
+if ($Interface -eq 'os') { $frontends += Join-Path $PSScriptRoot 'frontend-os' }
+$pythonVersionCheck = 'import sys; sys.exit(0 if sys.version_info[:2] == (3, 14) else 1)'
 
 function Assert-ExitCode {
     if ($LASTEXITCODE -ne 0) { throw "Command failed with exit code $LASTEXITCODE" }
@@ -38,8 +42,22 @@ function Test-PythonArchitecture {
     }
 }
 
+if ($ResetVenv -and $SkipInstall) { throw '-ResetVenv cannot be combined with -SkipInstall.' }
+if ($ResetVenv -or -not (Test-Path $python)) {
+    $bootstrapPython = 'python'
+    $bootstrapArgs = @()
+    if (Get-Command py -ErrorAction SilentlyContinue) {
+        $bootstrapPython = 'py'
+        $bootstrapArgs = @('-3.14')
+    }
+    try {
+        & $bootstrapPython @bootstrapArgs -c $pythonVersionCheck
+        Assert-ExitCode
+    } catch {
+        throw 'Python 3.14 is required. Install Python 3.14 (64-bit) and verify: py -3.14 --version. Existing environment was not changed.'
+    }
+}
 if ($ResetVenv) {
-    if ($SkipInstall) { throw '-ResetVenv cannot be combined with -SkipInstall.' }
     $venv = Join-Path $PSScriptRoot 'backend\.venv'
     if (Test-Path $venv) {
         $backupName = '.venv-backup-' + [guid]::NewGuid().ToString('N')
@@ -48,32 +66,36 @@ if ($ResetVenv) {
     }
 }
 if (-not (Test-Path $python)) {
-    python -c "import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)"
-    Assert-ExitCode
-    python -m venv (Join-Path $PSScriptRoot 'backend\.venv')
+    & $bootstrapPython @bootstrapArgs -m venv (Join-Path $PSScriptRoot 'backend\.venv')
     Assert-ExitCode
 }
 if (-not (Test-PythonArchitecture $python)) {
     throw 'The virtual environment Python is incompatible with this PC. Run: .\run.ps1 -ResetVenv. Do not copy .venv between PCs.'
 }
 try {
-    & $python -c "import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)"
+    & $python -c $pythonVersionCheck
     Assert-ExitCode
 } catch {
-    throw 'The virtual environment cannot run on this PC. Install Python 3.12+ locally, then run: .\run.ps1 -ResetVenv'
+    throw 'The virtual environment must use Python 3.14. Install Python 3.14 locally, deactivate any active environment, then run: .\run.ps1 -ResetVenv'
 }
 if (-not $SkipInstall) {
-    & $python -m pip install --prefer-binary --only-binary=cryptography,cffi -r (Join-Path $PSScriptRoot 'backend\requirements.txt')
+    & $python -m pip install --prefer-binary --only-binary=cryptography,cffi,pydantic-core -r (Join-Path $PSScriptRoot 'backend\requirements.txt')
     Assert-ExitCode
-    npm --prefix $frontend ci
-    Assert-ExitCode
+    foreach ($source in $frontends) {
+        npm --prefix $source ci
+        Assert-ExitCode
+    }
 }
 if (-not $SkipBuild) {
-    npm --prefix $frontend run build
-    Assert-ExitCode
+    foreach ($source in $frontends) {
+        npm --prefix $source run build
+        Assert-ExitCode
+    }
 }
-if (-not (Test-Path (Join-Path $frontend 'dist\index.html'))) {
-    throw 'Frontend build is missing. Run without -SkipBuild.'
+foreach ($source in $frontends) {
+    if (-not (Test-Path (Join-Path $source 'dist\index.html'))) {
+        throw 'Frontend build is missing. Run without -SkipBuild.'
+    }
 }
 
 $activePorts = @([System.Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners() | ForEach-Object { $_.Port })
@@ -82,5 +104,6 @@ $serverArgs = @('-m', 'uvicorn', 'app.main:app', '--app-dir', (Join-Path $PSScri
 $envFile = Join-Path $PSScriptRoot '.env'
 if (Test-Path $envFile) { $serverArgs += @('--env-file', $envFile) }
 Write-Host "Guardian: http://127.0.0.1:$Port (Ctrl+C to stop)"
+if ($Interface -eq 'os') { Write-Host "AIOS desktop: http://127.0.0.1:$Port/os/" }
 & $python @serverArgs
 Assert-ExitCode

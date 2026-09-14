@@ -235,6 +235,11 @@ def confirm_health_screening(session_id: str, request: HealthConfirmationRequest
 
 
 frontend_dist = Path(__file__).resolve().parents[2] / "frontend-canvas" / "dist"
+os_dist = Path(__file__).resolve().parents[2] / "frontend-os" / "dist"
+if os_dist.exists():
+    from fastapi.staticfiles import StaticFiles
+    app.mount("/os", StaticFiles(directory=os_dist, html=True), name="os-ui")
 if frontend_dist.exists():
     from fastapi.staticfiles import StaticFiles
+    app.mount("/workspace", StaticFiles(directory=frontend_dist, html=True), name="workspace-window")
     app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="workspace-ui")

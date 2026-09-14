@@ -6,7 +6,9 @@ boundary. The original child-oriented canvas and 3D orb remain as legacy demos.
 
 ## Quick Start: Guardian Workspace
 
-Requires Python 3.12+ and Node.js 20.19+ or 22.12+. From this folder:
+Requires Python 3.14 (64-bit) and Node.js 20.19+ or 22.12+.
+FastAPI 0.121.3 and Pydantic 2.12.4 replace the older Python 3.12-era
+dependencies. From this folder:
 
 ```powershell
 .\run.ps1
@@ -20,11 +22,21 @@ Restart after backend changes; rebuild after frontend changes.
 When moving this project to another PC, exclude `backend/.venv` and
 `node_modules`. Virtual environments are not portable between machines or CPU
 architectures. If Python reports "Machine Type Mismatch" or "not a valid
-application for this OS platform", install Python 3.12+ on the destination PC
+application for this OS platform", install Python 3.14 on the destination PC
 and run `.\run.ps1 -ResetVenv`. This preserves the previous environment in a
-`backend/.venv-backup-*` folder, creates a new one with the local `python`, and
+`backend/.venv-backup-*` folder, creates a new one with `py -3.14` (or `python`
+if the launcher is absent and that executable is Python 3.14), and
 reinstalls dependencies. Root `.env` settings are preserved. Do not use
 `-SkipInstall` with this option.
+
+If installation tries to compile `pydantic-core` with `cp314` and fails with
+`link.exe not found`, update `backend/requirements.txt` and `run.ps1` from this
+version of the project. Do not keep the old `pydantic==2.7.4` pin. The launcher
+requires a binary wheel for pydantic-core instead of attempting a Rust build.
+An existing Python 3.14 environment can be reused by running `.\run.ps1`.
+For a Python 3.12 environment, deactivate it, verify `py -3.14 --version`, and
+run `.\run.ps1 -ResetVenv`. The replacement interpreter is checked before the
+existing environment is backed up.
 
 Optional Azure settings are listed in [.env.example](.env.example). The launcher
 loads a root `.env` without replacing existing environment variables. Keep keys
@@ -128,7 +140,7 @@ docs/architecture.md System diagram, sequence diagram, allow-list flow.
 
 ```powershell
 cd backend
-python -m venv .venv
+py -3.14 -m venv .venv
 .\.venv\Scripts\pip install -r requirements.txt
 .\.venv\Scripts\python -m uvicorn app.main:app --reload --port 8035
 ```
@@ -139,10 +151,9 @@ Run the tests:
 .\.venv\Scripts\python -m pytest -q
 ```
 
-> Note: `requirements.txt` pins `fastapi==0.109.2` (not the latest) and plain
-> `uvicorn` (no `[standard]` extra) — newer FastAPI pulls in `fastapi-cli`,
-> which requires `uvicorn[standard]` → `httptools`, which has no prebuilt wheel
-> on Windows ARM64. If you're not on ARM64 you can upgrade freely.
+> Dependencies use plain `fastapi` and `uvicorn`, without their `[standard]`
+> extras. This avoids unnecessary native server extensions. The launcher
+> requires binary wheels for pydantic-core, cryptography and cffi.
 
 ### 2. 2D Card Canvas
 
