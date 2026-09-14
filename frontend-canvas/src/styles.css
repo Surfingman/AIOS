@@ -1,0 +1,375 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: linear-gradient(180deg, #eef6ff, #fff9ea);
+  color: #23324a;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: #ffffffcc;
+  border-bottom: 2px solid #d8e8ff;
+}
+
+.app__header h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.app__subtitle {
+  color: #6b7c99;
+  font-size: 13px;
+  flex: 1;
+}
+
+.app__canvas {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.app__empty {
+  margin: auto;
+  color: #8493ad;
+  text-align: center;
+  max-width: 420px;
+}
+
+.app__thinking {
+  color: #8493ad;
+  font-style: italic;
+}
+
+.turn__bubble {
+  align-self: flex-end;
+  background: #4f7cff;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 16px 16px 4px 16px;
+  max-width: 70%;
+  margin-left: auto;
+}
+
+.turn__results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 14px 18px;
+  box-shadow: 0 4px 14px rgba(50, 80, 150, 0.12);
+  min-width: 220px;
+  max-width: 320px;
+}
+
+.card--blocked {
+  background: #fff1f1;
+  border: 1px solid #ffb3b3;
+}
+
+.card--error {
+  background: #fff8e1;
+  border: 1px solid #ffd980;
+}
+
+.card__title {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.card__body {
+  color: #4a5875;
+  font-size: 14px;
+}
+
+.card__signals {
+  margin-top: 8px;
+  color: #9b2c2c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.card__actions {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  color: #4a3640;
+  font-size: 13px;
+}
+
+.link-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  color: #4a5875;
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.steps__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.steps__emoji {
+  font-size: 28px;
+}
+
+.steps__text {
+  font-size: 14px;
+}
+
+.app__input {
+  display: flex;
+  gap: 10px;
+  padding: 16px 20px;
+  background: #ffffffcc;
+  border-top: 2px solid #d8e8ff;
+}
+
+.app__input input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 999px;
+  border: 1px solid #c8d6f0;
+  font-size: 15px;
+}
+
+.app__input button {
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: none;
+  background: #4f7cff;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.parent-panel {
+  position: relative;
+}
+
+.parent-panel__toggle {
+  border: none;
+  background: #eef2ff;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.parent-panel__body {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(30, 50, 100, 0.2);
+  padding: 16px;
+  width: 260px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.parent-panel__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #4a5875;
+}
+
+.parent-panel__capabilities {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.parent-panel__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.parent-panel__save {
+  border: none;
+  background: #4f7cff;
+  color: white;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.health-panel {
+  position: relative;
+  display: flex;
+  gap: 6px;
+}
+
+.health-panel button {
+  border: 0;
+  cursor: pointer;
+}
+
+.health-panel__toggle,
+.health-panel__upload {
+  padding: 8px 12px;
+  background: #e8f6ef;
+  color: #176b4b;
+  border-radius: 8px;
+}
+
+.health-panel__body {
+  position: absolute;
+  right: 0;
+  top: 42px;
+  width: min(440px, calc(100vw - 32px));
+  max-height: 72vh;
+  overflow-y: auto;
+  z-index: 20;
+  padding: 16px;
+  background: white;
+  border: 1px solid #b8d8c8;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(30, 60, 50, 0.2);
+}
+
+.health-panel__title {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.health-panel__notice,
+.card__notice,
+.card__sources {
+  font-size: 12px;
+  color: #5c6978;
+  margin: 8px 0;
+}
+
+.health-panel__measurement {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) 90px 100px;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  font-size: 13px;
+}
+
+.health-panel__measurement input,
+.health-panel__field input {
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid #cad7d0;
+  border-radius: 6px;
+}
+
+.health-panel__field {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.health-panel__confirm {
+  width: 100%;
+  margin-top: 14px;
+  padding: 10px;
+  background: #176b4b;
+  color: white;
+  border-radius: 6px;
+}
+
+.card--wellness {
+  max-width: 880px;
+  width: 100%;
+}
+
+.health-flag {
+  padding: 8px;
+  margin-top: 8px;
+  border-left: 4px solid #c98a14;
+  background: #fff8e8;
+  font-size: 13px;
+}
+
+.health-flag--high,
+.health-flag--urgent {
+  border-color: #c83f3f;
+  background: #fff0f0;
+}
+
+.wellness-days {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.wellness-day {
+  padding: 10px;
+  border: 1px solid #d7e6df;
+  border-radius: 6px;
+}
+
+.wellness-day span {
+  display: block;
+  margin-top: 4px;
+  color: #4a5875;
+  font-size: 13px;
+}
+
+.wellness-day ol {
+  padding-left: 20px;
+  margin-bottom: 0;
+  font-size: 12px;
+}
+
+.meal-guide {
+  margin-top: 12px;
+  padding: 10px;
+  background: #f0f7f3;
+  font-size: 13px;
+}
+
+@media (max-width: 700px) {
+  .app__subtitle {
+    display: none;
+  }
+
+  .health-panel__measurement {
+    grid-template-columns: 1fr 76px 82px;
+  }
+}
