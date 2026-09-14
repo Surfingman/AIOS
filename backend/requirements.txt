@@ -1,0 +1,10 @@
+fastapi==0.109.2
+uvicorn==0.30.1
+pydantic==2.7.4
+pytest==8.2.2
+httpx==0.27.0
+python-multipart==0.0.20
+azure-ai-documentintelligence>=1.0.0
+azure-identity>=1.17.0
+websockets>=13.0,<16
+python-dotenv>=1.0.0
